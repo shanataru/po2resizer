@@ -4,6 +4,9 @@ from bz2 import compress
 from PIL import Image
 import os, os.path
 
+
+# consult https://github.com/RyanAWalters/PowerOf2ImageResizer
+
 threshold = 0.25
 
 sizes = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384]  # po2 sizes
