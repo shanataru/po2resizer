@@ -1,43 +1,44 @@
 from argparse import ArgumentParser
-from ast import parse
-from bz2 import compress
 from PIL import Image
 import os, os.path
 
-
 # consult https://github.com/RyanAWalters/PowerOf2ImageResizer
 
-threshold = 0.25
+#threshold = 0.25
 
-sizes = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384]  # po2 sizes
+#sizes = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]  # po2 sizes
+sizes = []
+
 valid_images = [".jpg", ".png", ".gif", ".bmp", ".tif"]
 
 def get_closest_po2_val(y):
     return min(sizes, key=lambda x: abs(x - y))
 
-def adjust_within_threshold(res, new_res):
+def adjust_within_threshold(res, new_res, threshold):
     if (res - new_res) > int(new_res * threshold):
+        if new_res == sizes[-1]:
+            return new_res
         return sizes[sizes.index(new_res) + 1]
     return new_res
 
-def po2(im):
+def po2(im, threshold):
     width, height = im.size
     closest_po2_width = get_closest_po2_val(width)
     closest_po2_height = get_closest_po2_val(height)
 
-    new_width = adjust_within_threshold(width, closest_po2_width)
-    new_height = adjust_within_threshold(height, closest_po2_height)
+    new_width = adjust_within_threshold(width, closest_po2_width, threshold)
+    new_height = adjust_within_threshold(height, closest_po2_height, threshold)
 
     return im.resize((new_width, new_height), resample=Image.BICUBIC)
 
 
-def main():
+def parse_cmd():
     parser = ArgumentParser(description="Resize image resolutions to the power of two")
     parser.add_argument('img_dir', help='Folder with images')
     parser.add_argument('-o', '--outimg', dest='resized_img_dir', type=str, help='Folder to store resized image files')
-    parser.add_argument('-tj', '--to-jpg', dest='to_jpg', type=bool, default=True, const = True, nargs='?', help='Convert images to JPEG (True, False). Default True')
+    parser.add_argument('-j', '--to-jpg', dest='to_jpg', type=int, default=1, const=1, nargs='?', help='Convert images to JPEG (0 yes, 1 no). Default 1')
     parser.add_argument('-q', '--quality', dest='jpg_quality', type=int, default=95, const=95, nargs='?', help='The JPEG image quality, on a scale from 0 (worst) to 95 (best). Default 95')
-    parser.add_argument('-c', '--compression', dest='compression', type=int, default=5, const = 5, nargs='?', help='Compression level (0-9, 0 = no compression). Default 5')
+    parser.add_argument('-c', '--compression', dest='compression', type=int, default=5, const =5, nargs='?', help='Compression level (0-9, 0 = no compression). Default 5')
 
     args = parser.parse_args()
     img_dir = args.img_dir
@@ -46,8 +47,17 @@ def main():
     jpg_quality = args.jpg_quality
     compression = args.compression
 
+def resizer(img_dir, resized_img_dir, threshold, max_res, to_jpg, jpg_quality, compression):
     if not os.path.exists(resized_img_dir):
         os.makedirs(resized_img_dir)
+
+    global sizes
+    x = 1
+    while True:
+        x = x*2
+        if x > max_res:
+            break
+        sizes.append(x)
 
     try:
         for f in os.listdir(img_dir):
@@ -60,16 +70,13 @@ def main():
 
             #print(img_path, new_img_path)
             im = Image.open(img_path)
-            if to_jpg:
+            if to_jpg == 1:
                 if not im.mode == 'RGB':
                     im = im.convert('RGB')
-                po2(im).save(new_img_path + ".jpg", "JPEG", quality=jpg_quality)
+                po2(im, threshold).save(new_img_path + ".jpg", "JPEG", quality=jpg_quality)
             else:
                 img_format = im.format.lower()
-                po2(im).save(new_img_path + "." + img_format, img_format, compress_level=compression)
+                po2(im, threshold).save(new_img_path + "." + img_format, img_format, compress_level=compression)
             print(f)
     except MemoryError:
         print("OOM")
-
-
-main()
