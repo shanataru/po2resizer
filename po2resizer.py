@@ -80,3 +80,5 @@ def resizer(img_dir, resized_img_dir, threshold, max_res, to_jpg, jpg_quality, c
             print(f)
     except MemoryError:
         print("OOM")
+
+    print("Run finished")

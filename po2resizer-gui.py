@@ -90,7 +90,7 @@ class App(tk.Tk):
         self.execute_button = ttk.Button(self, text='Run', command=self.execute_button, width=20)
         self.execute_button.grid(column=1, columnspan = 2, row=6, sticky=tk.E, padx = 10, pady=40)
 
-        self.help_button = ttk.Button(self, text='Help', command=self.execute_button)
+        self.help_button = ttk.Button(self, text='Help (todo)', command=self.execute_button)
         self.help_button.grid(column=0, row=6, sticky=tk.W, padx=20, pady=40)
 
 
@@ -124,7 +124,7 @@ class App(tk.Tk):
 
         #print(self.max_res)
         po2resizer.resizer(self.input_dir, self.output_dir, self.threshold, self.max_res, self.to_jpg, self.jpg_quality, self.compression)
-        showinfo("Where's progress bar", "Run finished.")
+        showinfo("Status", "Run finished.")
 
 
     def to_jpg_checkbutton(self):
