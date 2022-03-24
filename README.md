@@ -1,5 +1,5 @@
 # po2resizer 
-The resizer rescales the dimensions of an image to the power of 2 (independently). It uses a bicubic filter to resample the images.
+The resizer rescales the dimensions of an image to the power of 2 and tries to keep the proportions as well. It uses a Lanczos filter to resample the images.
 
 
 Works with filetypes: ".jpg", ".png", ".gif", ".bmp", ".tif"

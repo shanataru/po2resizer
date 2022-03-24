@@ -2,6 +2,8 @@ from argparse import ArgumentParser
 from PIL import Image
 import os, os.path
 
+from numpy import size
+
 # consult https://github.com/RyanAWalters/PowerOf2ImageResizer
 
 #threshold = 0.25
@@ -9,16 +11,17 @@ import os, os.path
 #sizes = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]  # po2 sizes
 sizes = []
 
-valid_images = [".jpg", ".png", ".gif", ".bmp", ".tif"]
+valid_images = [".jpg", ".jpeg", ".jpe", ".jif", ".jfif", ".pjpeg", ".png", ".gif", ".bmp", ".tif", ".tiff"]
 
 def get_closest_po2_val(y):
     return min(sizes, key=lambda x: abs(x - y))
 
 def adjust_within_threshold(res, new_res, threshold):
     if (res - new_res) > int(new_res * threshold):
+        #cannot increase over the limit anymore..
         if new_res == sizes[-1]:
             return new_res
-        return sizes[sizes.index(new_res) + 1]
+        return sizes[sizes.index(new_res) + 1] #increase the new resolution according to threshold
     return new_res
 
 def po2(im, threshold):
@@ -29,8 +32,14 @@ def po2(im, threshold):
     new_width = adjust_within_threshold(width, closest_po2_width, threshold)
     new_height = adjust_within_threshold(height, closest_po2_height, threshold)
 
-    return im.resize((new_width, new_height), resample=Image.BICUBIC)
+    return im.resize((new_width, new_height), resample=Image.LANCZOS)
 
+def aspect_ratio_resize(im, threshold):
+    width, height = im.size
+    largest = max(width, height)
+    closest_po2_largest = get_closest_po2_val(largest)
+    res = adjust_within_threshold(largest, closest_po2_largest, threshold)
+    return res
 
 def parse_cmd():
     parser = ArgumentParser(description="Resize image resolutions to the power of two")
@@ -54,10 +63,14 @@ def resizer(img_dir, resized_img_dir, threshold, max_res, to_jpg, jpg_quality, c
     global sizes
     x = 1
     while True:
-        x = x*2
-        if x > max_res:
+        new_x = x*2
+        if new_x > max_res:
+            if (max_res - x) > int(x * threshold):
+                sizes.append(new_x)
+                break
             break
-        sizes.append(x)
+        sizes.append(new_x)
+        x = new_x
 
     try:
         for f in os.listdir(img_dir):
@@ -70,6 +83,11 @@ def resizer(img_dir, resized_img_dir, threshold, max_res, to_jpg, jpg_quality, c
 
             #print(img_path, new_img_path)
             im = Image.open(img_path)
+
+            #resize to the maximum of max_res while keeping aspect ratio
+            new_res = aspect_ratio_resize(im, threshold)
+            im.thumbnail((new_res, new_res), Image.LANCZOS)
+
             if to_jpg == 1:
                 if not im.mode == 'RGB':
                     im = im.convert('RGB')
@@ -78,7 +96,10 @@ def resizer(img_dir, resized_img_dir, threshold, max_res, to_jpg, jpg_quality, c
                 img_format = im.format.lower()
                 po2(im, threshold).save(new_img_path + "." + img_format, img_format, compress_level=compression)
             print(f)
+            #img_format = im.format.lower()
+            #im.save(new_img_path + "." + img_format, img_format, compress_level=compression)
     except MemoryError:
         print("OOM")
 
+    sizes.clear()
     print("Run finished")
