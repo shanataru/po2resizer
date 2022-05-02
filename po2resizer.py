@@ -2,8 +2,6 @@ from argparse import ArgumentParser
 from PIL import Image
 import os, os.path
 
-from numpy import size
-
 # consult https://github.com/RyanAWalters/PowerOf2ImageResizer
 
 #threshold = 0.25
@@ -99,7 +97,7 @@ def resizer(img_dir, resized_img_dir, threshold, max_res, to_jpg, jpg_quality, c
             #img_format = im.format.lower()
             #im.save(new_img_path + "." + img_format, img_format, compress_level=compression)
     except MemoryError:
-        print("OOM")
+        print("Out of Memory Error")
 
     sizes.clear()
     print("Run finished")

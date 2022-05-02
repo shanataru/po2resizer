@@ -5,6 +5,10 @@ from tkinter.messagebox import showinfo
 from tkinter import END
 import po2resizer
 
+g_threshold = 0.5
+g_max_res = 8192
+
+
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -21,8 +25,8 @@ class App(tk.Tk):
 
         self.input_dir = ""
         self.output_dir = ""
-        self.threshold = 0.25
-        self.max_res = 8192
+        self.threshold = g_threshold
+        self.max_res = g_max_res
         self.to_jpg = 1
         self.jpg_quality = 95
         self.compression = 5
@@ -51,7 +55,7 @@ class App(tk.Tk):
 
         
         #THRESHOLD
-        self.threshold_label = ttk.Label(self, text='Downsample threshold (0-1):')
+        self.threshold_label = ttk.Label(self, text='Upscale threshold (0-1):')
         self.threshold_label.grid(column=0, row=2, sticky=tk.W, padx=20, pady=20)
 
         self.threshold_text_var = tk.IntVar()
@@ -101,12 +105,12 @@ class App(tk.Tk):
         try:
             self.threshold = float(self.threshold_entry.get())
         except:
-            self.threshold = 0.25
+            self.threshold = g_threshold
         
         try:
             self.max_res = int(self.maxres_entry.get())
         except:
-            self.max_res = 8192
+            self.max_res = g_max_res
 
         self.to_jpg = self.checkbutton_var.get()
 
@@ -116,14 +120,14 @@ class App(tk.Tk):
             self.jpg_quality = 0.95
 
         if self.threshold < 0 or self.threshold > 1:
-           self.threshold = 0.25
+           self.threshold = g_threshold
         if self.max_res < 0:
-           self.max_res = 8192
+           self.max_res = g_max_res
         if self.jpg_quality > 100 or self.jpg_quality < 0:
            self.jpg_quality = 95
 
         #print(self.max_res)
-        po2resizer.resizer(self.input_dir, self.output_dir, self.threshold, self.max_res, self.to_jpg, self.jpg_quality, self.compression)
+        po2resizer.resizer(self.input_dir, self.output_dir, 1 - self.threshold, self.max_res, self.to_jpg, self.jpg_quality, self.compression)
         showinfo("Status", "Run finished.")
 
 
