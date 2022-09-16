@@ -9,7 +9,7 @@ import os, os.path
 #sizes = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]  # po2 sizes
 sizes = []
 
-valid_images = [".jpg", ".jpeg", ".jpe", ".jif", ".jfif", ".pjpeg", ".png", ".gif", ".bmp", ".tif", ".tiff"]
+valid_images = [".jpg", ".jpeg", ".jpe", ".jif", ".jfif", ".pjpeg", ".png", ".gif", ".bmp", ".tif", ".tiff", ".tga"]
 
 def get_closest_po2_val(y):
     return min(sizes, key=lambda x: abs(x - y))
@@ -70,11 +70,17 @@ def resizer(img_dir, resized_img_dir, threshold, max_res, to_jpg, jpg_quality, c
         sizes.append(new_x)
         x = new_x
 
+    found_count = 0
+    processed_count = 0
+    skipped_count = 0
+
     try:
         for f in os.listdir(img_dir):
+            found_count += 1
             ext = os.path.splitext(f)[1]
             name = os.path.splitext(f)[0]
             if ext.lower() not in valid_images:
+                skipped_count += 1
                 continue
             img_path = os.path.join(img_dir,f)
             new_img_path = os.path.join(resized_img_dir, name)
@@ -92,12 +98,24 @@ def resizer(img_dir, resized_img_dir, threshold, max_res, to_jpg, jpg_quality, c
                 po2(im, threshold).save(new_img_path + ".jpg", "JPEG", quality=jpg_quality)
             else:
                 img_format = im.format.lower()
-                po2(im, threshold).save(new_img_path + "." + img_format, img_format, compress_level=compression)
+                img_format_ext = img_format
+
+                if img_format == 'jpeg':
+                    img_format_ext = 'jpg' 
+
+                if img_format == 'tiff':
+                    img_format_ext = 'tif'
+
+                if img_format == 'tga':
+                    po2(im, threshold).save(new_img_path + "." + img_format_ext, img_format)
+                else:
+                    po2(im, threshold).save(new_img_path + "." + img_format_ext, img_format, compress_level=compression)
             print(f)
+            processed_count += 1
             #img_format = im.format.lower()
             #im.save(new_img_path + "." + img_format, img_format, compress_level=compression)
     except MemoryError:
         print("Out of Memory Error")
 
     sizes.clear()
-    print("Run finished")
+    print("Run finished, found: {}, processed: {}, skipped: {}".format(found_count, processed_count, skipped_count))
