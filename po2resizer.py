@@ -98,18 +98,11 @@ def resizer(img_dir, resized_img_dir, threshold, max_res, to_jpg, jpg_quality, c
                 po2(im, threshold).save(new_img_path + ".jpg", "JPEG", quality=jpg_quality)
             else:
                 img_format = im.format.lower()
-                img_format_ext = img_format
-
-                if img_format == 'jpeg':
-                    img_format_ext = 'jpg' 
-
-                if img_format == 'tiff':
-                    img_format_ext = 'tif'
 
                 if img_format == 'tga':
-                    po2(im, threshold).save(new_img_path + "." + img_format_ext, img_format)
+                    po2(im, threshold).save(new_img_path + ext, img_format)
                 else:
-                    po2(im, threshold).save(new_img_path + "." + img_format_ext, img_format, compress_level=compression)
+                    po2(im, threshold).save(new_img_path + ext, img_format, compress_level=compression)
             print(f)
             processed_count += 1
             #img_format = im.format.lower()
